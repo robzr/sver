@@ -1,13 +1,13 @@
 #!/usr/bin/env sver_execed=true /bin/bash -eo pipefail
 # By Rob Zwissler (@robzr) 2/17/2024 https://github.com/robzr/sver
-# sellcheck disable=SC1008,SC2015,SC2096
+# shellcheck disable=SC1008,SC2015,SC2096
 # shfmt -i 2 -ci -w
 
 SVER_VERSION=v0.0.1
 SVER_INTRO="\
 sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
-Written in optimized, portable, pure bash for simplicity & speed.
+Written in optimized, portable, pure bash (v3)+ for simplicity & speed.
 "
 
 # regex from https://semver.org - removed PCRE named capture groups, added ^v?
@@ -69,7 +69,7 @@ sver_bump_patch() {
   sver_get_patch "$1"
   patch=$REPLY
   sver_get_prerelease "$1"
-  if [ -z "$REPLY" ] ; then  
+  if [ -z "$REPLY" ]; then
     REPLY="${major}.${minor}.$((patch + 1))"
   else
     REPLY="${major}.${minor}.${patch}"
@@ -175,7 +175,7 @@ sver_equals() { # if $1 == $2 then return 0 else return 1
 }
 
 sver_filter() { # no args, input & output are \n delimited SemVers on stdin
-  while read -r ; do
+  while read -r; do
     if sver_validate "$REPLY"; then
       echo "$REPLY"
     fi
@@ -275,6 +275,7 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
 }
 
 sver_help() {
+  # shellcheck disable=SC1079
   echo "${SVER_INTRO}
 Usage: sver <command> [<sub_command>] [<version>] [<constraint>]
 
@@ -301,7 +302,7 @@ Commands:
 
 Versions:
   Semantic Versioning 2 (https://semver.org) compliant versions, with an
-  optional "v" prefix tolerated on input.
+  optional \"v\" prefix tolerated on input.
 
 Constraints:
   Version constraint supports the following operators. Multiple comma-delimited
