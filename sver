@@ -10,9 +10,13 @@ library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure bash (v3)+ for simplicity & speed.
 "
 
-# regex from https://semver.org - removed PCRE named capture groups, added ^v?
-SVER_REGEX='^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-((0|[1-9]\d*|\d*'
-SVER_REGEX+='[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)'
+# regex from https://semver.org with changes
+# - added ^v?
+# - removed PCRE named capture groups
+# - '\d' -> '[0-9]'
+SVER_REGEX='^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)'
+SVER_REGEX+='(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)'
+SVER_REGEX+='(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)'
 SVER_REGEX+=')*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
 
 #
@@ -175,9 +179,10 @@ sver_equals() { # if $1 == $2 then return 0 else return 1
 }
 
 sver_filter() { # no args, input & output are \n delimited SemVers on stdin
-  while read -r; do
-    if sver_validate "$REPLY"; then
-      echo "$REPLY"
+  local line
+  while read -r line ; do
+    if sver_validate "$line" >& /dev/null; then
+      echo "$line"
     fi
   done
   REPLY=
@@ -233,20 +238,35 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   id1=$REPLY
   sver_get_major "$version2"
   id2=$REPLY
-  [ "$id1" -gt "$id2" ] && return 0 || true
-  [ "$id1" -lt "$id2" ] && return 1 || true
+  if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
+    [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
+    [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
+  else
+    [ "$id1" -gt "$id2" ] && return 0 || true
+    [ "$id1" -lt "$id2" ] && return 1 || true
+  fi
   sver_get_minor "$version1"
   id1=$REPLY
   sver_get_minor "$version2"
   id2=$REPLY
-  [ "$id1" -gt "$id2" ] && return 0 || true
-  [ "$id1" -lt "$id2" ] && return 1 || true
+  if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
+    [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
+    [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
+  else
+    [ "$id1" -gt "$id2" ] && return 0 || true
+    [ "$id1" -lt "$id2" ] && return 1 || true
+  fi
   sver_get_patch "$version1"
   id1=$REPLY
   sver_get_patch "$version2"
   id2=$REPLY
-  [ "$id1" -gt "$id2" ] && return 0 || true
-  [ "$id1" -lt "$id2" ] && return 1 || true
+  if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
+    [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
+    [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
+  else
+    [ "$id1" -gt "$id2" ] && return 0 || true
+    [ "$id1" -lt "$id2" ] && return 1 || true
+  fi
   sver_get_prerelease "$version1"
   pr1=$REPLY
   sver_get_prerelease "$version2"
@@ -264,11 +284,16 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
     [[ -z "$id1" && -n "$id2" ]] && return 1 || true
     [[ -z "$id1" && -z "$id2" ]] && return 1 || true
     if [[ "$id1" =~ ^[0-9]*$ && "$id1" =~ ^[0-9]*$ ]]; then
-      [ "$id1" -gt "$id2" ] && return 0 || true
-      [ "$id1" -lt "$id2" ] && return 1 || true
+      if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
+        [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
+        [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
+      else
+        [ "$id1" -gt "$id2" ] && return 0 || true
+        [ "$id1" -lt "$id2" ] && return 1 || true
+      fi
     else
-      [[ "$id1" > "$id2" ]] && return 0 || true
-      [[ "$id1" < "$id2" ]] && return 1 || true
+      [ "$id1" > "$id2" ] && return 0 || true
+      [ "$id1" < "$id2" ] && return 1 || true
     fi
   done
   return 1
@@ -285,19 +310,20 @@ Commands:
   bump patch <version>
   complete -- bash command completion, use: . /dev/stdin <<< \"\$(sver complete)\"
   constraint <version> <constraint(s)> -- version constraint evaluation - if
-                              version matches constraint(s), exit 0 else exit 1
+                              version matches constraint(s) ? exit 0 : exit 1
   yaml <version> -- displays YAML map of components
-  equals <version1> <version2> -- if version1 == version2, exit 0 else exit 1
+  equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
   filter -- filters stdin list, returns only valid SemVers
-  greater_than <version1> <version2> -- version1 > version2, exit 0 else exit 1
+  greater_than <version1> <version2> -- version1 > version2 ? exit 0 : exit 1
   get major <version>
   get minor <version>
   get patch <version>
   get prerelease <version>
   get build_metadata <version>
   help
+  less_than <version1> <version2> -- version1 < version2 ? 0 : exit 1
   sort -- sorts stdin list of SemVers
-  validate <version> -- if version is valid, exit 0 else exit 1
+  validate <version> -- version is valid ? exit 0 : exit 1
   version
 
 Versions:
@@ -316,7 +342,9 @@ Constraints:
     ~> <version_substring> -- pessimistic constraint operator, allows the least
       significant (rightmost) identifier specified in the constraint to be
       incremented, but prevents more significant (further left) identifiers
-      from being incremented."
+      from being incremented.
+  Examples: \"~> v1.2, != v1.3\", \"> v1, <= v2.4.7, != v2.4.4\"
+"
 }
 
 sver_json() {
