@@ -13,6 +13,10 @@ jobs:
           pwd >> "$GITHUB_PATH"
       - run: sver version
       - run: tests/run_tests.sh
+      - run: |
+          # test Homebrew Formula
+          homebrew/make.sh
+          git diff --check
       - if: always()
         uses: actions/upload-artifact@v4
         with:
