@@ -27,6 +27,38 @@ SVER_REGEX+=')*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
 # returned via the $REPLY variable wherever practical in order to eliminate an
 # unnecessary child process. Even the sort routine is written in pure bash.
 #
+
+# string / big integer compare function
+# returns 0 (==) 1 ($1 > $2) 2 ($1 < $2)
+_sver_compare() {
+  local id1=$1
+  local id2=$2
+
+  if ! [[ "$id1" =~ ^[0-9]*$ && "$id2" =~ ^[0-9]*$ ]]; then
+    [ "$id1" \> "$id2" ] && return 1 || true
+    [ "$id1" \< "$id2" ] && return 2 || true
+    return 0
+  fi
+
+  _sver_compare_numeric "$id1" "$id2"
+}
+
+# big integer (up to 999 digits) compare function
+# returns 0 (==) 1 ($1 > $2) 2 ($1 < $2)
+_sver_compare_numeric() {
+  local id1=$1
+  local id2=$2
+
+  while [[ "${#id1}" -gt 0 && "${#id2}" -gt 0 ]] ; do
+    [ "${id1:0:18}" -gt "${id2:0:18}" ] && return 1 || true
+    [ "${id1:0:18}" -lt "${id2:0:18}" ] && return 2 || true
+    id1=${id1:18:999}
+    id2=${id2:18:999}
+  done
+
+  return 0
+}
+
 _sver_complete_function() {
   if [ "$COMP_CWORD" = 1 ]; then
     # shellcheck disable=SC2046
@@ -229,44 +261,50 @@ sver_get_prerelease() {
 }
 
 sver_greater_than() { # if $1 > $2 then return 0 else return 1
+  local id1 id2 pr1 pr2
+
   sver_normalize -b "$1"
   local version1=$REPLY
   sver_normalize -b "$2"
   local version2=$REPLY
-  local id1 id2 pr1 pr2
+
   sver_get_major "$version1"
   id1=$REPLY
   sver_get_major "$version2"
   id2=$REPLY
-  if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
-    [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
-    [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
-  else
-    [ "$id1" -gt "$id2" ] && return 0 || true
-    [ "$id1" -lt "$id2" ] && return 1 || true
+
+  _sver_compare_numeric "$id1" "$id2"
+  REPLY=$?
+  if [ $REPLY -eq 1 ] ; then
+    return 0
+  elif [ $REPLY -eq 2 ] ; then
+    return 1
   fi
+
   sver_get_minor "$version1"
   id1=$REPLY
   sver_get_minor "$version2"
   id2=$REPLY
-  if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
-    [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
-    [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
-  else
-    [ "$id1" -gt "$id2" ] && return 0 || true
-    [ "$id1" -lt "$id2" ] && return 1 || true
+  _sver_compare_numeric "$id1" "$id2"
+  REPLY=$?
+  if [ $REPLY -eq 1 ] ; then
+    return 0
+  elif [ $REPLY -eq 2 ] ; then
+    return 1
   fi
+
   sver_get_patch "$version1"
   id1=$REPLY
   sver_get_patch "$version2"
   id2=$REPLY
-  if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
-    [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
-    [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
-  else
-    [ "$id1" -gt "$id2" ] && return 0 || true
-    [ "$id1" -lt "$id2" ] && return 1 || true
+  _sver_compare_numeric "$id1" "$id2"
+  REPLY=$?
+  if [ $REPLY -eq 1 ] ; then
+    return 0
+  elif [ $REPLY -eq 2 ] ; then
+    return 1
   fi
+
   sver_get_prerelease "$version1"
   pr1=$REPLY
   sver_get_prerelease "$version2"
@@ -283,17 +321,12 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
     [[ -n "$id1" && -z "$id2" ]] && return 0 || true
     [[ -z "$id1" && -n "$id2" ]] && return 1 || true
     [[ -z "$id1" && -z "$id2" ]] && return 1 || true
-    if [[ "$id1" =~ ^[0-9]*$ && "$id1" =~ ^[0-9]*$ ]]; then
-      if [[ "${#id1}" -gt 18 || "${#id2}" -gt 18 ]] ; then
-        [ "$(bc -l <<< "$id1 > $id2")" = 1 ] && return 0 || true
-        [ "$(bc -l <<< "$id1 < $id2")" = 1 ] && return 1 || true
-      else
-        [ "$id1" -gt "$id2" ] && return 0 || true
-        [ "$id1" -lt "$id2" ] && return 1 || true
-      fi
-    else
-      [ "$id1" > "$id2" ] && return 0 || true
-      [ "$id1" < "$id2" ] && return 1 || true
+    _sver_compare "$id1" "$id2"
+    REPLY=$?
+    if [ $REPLY -eq 1 ] ; then
+      return 0
+    elif [ $REPLY -eq 2 ] ; then
+      return 1
     fi
   done
   return 1
@@ -311,7 +344,6 @@ Commands:
   complete -- bash command completion, use: . /dev/stdin <<< \"\$(sver complete)\"
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
-  yaml <version> -- displays YAML map of components
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
   filter -- filters stdin list, returns only valid SemVers
   greater_than <version1> <version2> -- version1 > version2 ? exit 0 : exit 1
@@ -321,10 +353,12 @@ Commands:
   get prerelease <version>
   get build_metadata <version>
   help
+  json <version> -- displays JSON map of components
   less_than <version1> <version2> -- version1 < version2 ? 0 : exit 1
   sort -- sorts stdin list of SemVers
   validate <version> -- version is valid ? exit 0 : exit 1
   version
+  yaml <version> -- displays YAML map of components
 
 Versions:
   Semantic Versioning 2 (https://semver.org) compliant versions, with an
@@ -399,9 +433,13 @@ sver_normalize() {
 
 sver_sort() { # no arg, input is list of semvers, output is via stdout
   local i j swapped tmp versions
+  declare -a versions
 
-  # shellcheck disable=SC2046
-  read -ra versions <<<$(sver_filter | xargs echo)
+  # mapfile not supported in bash v3
+  while read -r ; do
+    versions+=($REPLY)
+  done <<< $(sver_filter)
+
   # bubble sort
   for ((i = 0; i < ${#versions[@]} - 1; i++)); do
     swapped=false
