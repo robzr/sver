@@ -1,5 +1,5 @@
 # sver
-Semantic Version parsing and utility script and function library in pure bash
+Semver (Semantic Version) parsing & utility script/function library in pure bash
 
 ## Overview
 `sver` is a self contained cli tool and function library implementing a [Semantic
@@ -17,8 +17,31 @@ optimized, portable, pure bash (v3+) for simplicity & speed.
 - uses bash primitives and builtins exclusively for speed & portability
 - single script usable as a CLI or mixin bash function library (documentation in source)
 - comprehensive [test](tests) coverage
+- compatible with bash v3 for us poor macOS users
 
 ## Usage
+### Installation
+It is a self contained bash script, so you can clone the repo and run directly.
+However, here are some other convenient ways to install it.
+#### curl
+You can simply curl a version directly.
+```
+curl -LO https://github.com/robzr/sver/releases/download/v1.0.0/sver
+```
+
+#### Homebrew
+A Homebrew tap is available.
+```
+brew tap robzr/sver
+brew installs ver
+```
+If we can get enough momentum for this project on GitHub, and meet Homebrew
+criteria for a core formula, it will be added! This requires more than 75 stars,
+30 forks or 30 watchers.
+
+#### asdf
+Coming soon, working on an asdf plugin.
+
 ### Command
 See `sver help` for documentation.
 ```bash
