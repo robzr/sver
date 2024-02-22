@@ -16,7 +16,8 @@ jobs:
       - run: |
           # test Homebrew Formula
           homebrew/make.sh
-          git diff --check
+          git diff --exit-code
+        shell: bash
       - if: always()
         uses: actions/upload-artifact@v4
         with:
