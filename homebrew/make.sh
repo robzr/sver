@@ -6,7 +6,7 @@ sha256sum=$(shasum -a 256 "${repo_path}/sver" | cut -f1 -d\ )
 
 cat <<_EOF_ >"${repo_path}/homebrew/sver.rb" 
 class Sver < Formula
-  desc "Semver (Semantic Version) parsing & utility script and function library in pure bash"
+  desc "Semver (Semantic Version) parsing & utility script/function library in pure bash"
   homepage "https://github.com/robzr/sver"
   url "https://github.com/robzr/sver/releases/download/${version}/sver"
   sha256 "${sha256sum}"
