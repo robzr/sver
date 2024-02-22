@@ -3,7 +3,7 @@
 # shellcheck disable=SC1008,SC2015,SC2096
 # shfmt -i 2 -ci -w
 
-SVER_VERSION=v1.0.0-alpha
+SVER_VERSION=v1.0.0
 SVER_INTRO="\
 sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
@@ -501,6 +501,10 @@ if [ "${SVER_RUN:-true}" = true ]; then
   if [ $# = 0 ]; then
     COMP_WORDS=("" "help")
   else
+    if [[ "$1" =~ ^- ]]; then
+      echo "Error: Invalid argument syntax, run \"sver help\" for usage." >&2
+      exit 1
+    fi
     COMP_WORDS=("" "${@}")
   fi
   COMP_CWORD=1
