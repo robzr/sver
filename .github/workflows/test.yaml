@@ -1,0 +1,21 @@
+name: Test
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          # setup path
+          pwd >> "$GITHUB_PATH"
+      - run: sver version
+      - run: tests/run_tests.sh
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: ignore
+          name: sort-test-output
+          path: sort-*.txt
