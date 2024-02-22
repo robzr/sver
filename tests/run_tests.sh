@@ -27,11 +27,11 @@ test_sort() {
   local random=$([ "$1" = "-r" ] && echo true || echo false)
   local sort_status=0
 
-  presorted=$(sed 's/\+.*//') # filter out build metadata as it is not sorted 
+  presorted=$(sed 's/\+.*//') # filter out build metadata as it is not sorted
   presorted_sha=$(_get_sha <<< "$presorted")
   cat > "sort-presorted-${presorted_sha}.txt" <<< "$presorted"
 
-  if $random ; then 
+  if $random ; then
     unsorted=$(sort -R -t. -k1 -k2 -k3 <<< "$presorted")
   else
     unsorted=$(sort -rn -t. -k1 -k2 -k3 <<< "$presorted")
@@ -47,14 +47,14 @@ test_sort() {
     cat > "sort-unsorted-${unsorted_sha}.txt" <<< "$unsorted"
     cat > "sort-sorted-${sorted_sha}.txt" <<< "$sorted"
   fi
- 
+
   printf -- \
     '- checking sort %s (%s) - %s\n' \
     "$($random && echo "random" || echo "fixed")" \
     "$unsorted_sha" \
     "$([ "$sort_status" -eq 0 ] && echo 'passed.' || echo "failed ($sorted_sha)!")"
-  
-  return $sort_status 
+
+  return $sort_status
 }
 
 TESTS_JSON=$(mktemp)
@@ -83,7 +83,7 @@ echo 'Testing sorts'
 sort_output=$(mktemp)
 test_sort <<< "$EXAMPLES_SORTED" &
 for ((x=0; x < 5; x++)) ; do
-  ( test_sort -r <<< "$EXAMPLES_SORTED" 
+  ( test_sort -r <<< "$EXAMPLES_SORTED"
     echo $? > "${sort_output}.${x}"
   ) &
 done

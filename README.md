@@ -2,9 +2,9 @@
 Semantic Version parsing and utility script and function library in pure bash
 
 ## Overview
-`sver` is a self contained cli tool and function library implementing a Semantic
-Versioning 2 [Semantic Versioning 2](https://semver.org) compliant parser and
-utilities. Written in optimized, portable, pure bash (v3+) for simplicity & speed.
+`sver` is a self contained cli tool and function library implementing a [Semantic
+Versioning 2](https://semver.org) compliant parser and utilities. Written in
+optimized, portable, pure bash (v3+) for simplicity & speed.
 
 ### Features
 - bump or get version identifiers (major, minor, patch, prerelease, build_metadata)
@@ -75,7 +75,7 @@ Constraints:
 To use sver as a bash function library, source it with the `SVER_RUN=false` variable
 set.
 ```bash
-SVER_RUN=false . ./sver
+SVER_RUN=false . "$(command -v sver)"
 ```
 The same commands and syntax are available as the CLI, but written as
 functions, with the syntax `sver_<command>[_<subcommand>]`, ie: `sver_version`,
@@ -86,7 +86,5 @@ Permissive [Creative Commons - CC BY 3.0](https://creativecommons.org/licenses/b
 license - same as Semantic Versioning itself.
 
 # TODO
-- tests
+- constraint testing
 - asdf plugin
-- homebrew plugin
-- github action
