@@ -1,4 +1,4 @@
-#!/usr/bin/env sver_execed=true /bin/bash -eo pipefail
+#!/bin/bash
 # By Rob Zwissler (@robzr) 2/17/2024 https://github.com/robzr/sver
 # shellcheck disable=SC1008,SC2015,SC2096
 # shfmt -i 2 -ci -w
@@ -49,7 +49,7 @@ _sver_compare_numeric() {
   local id1=$1
   local id2=$2
 
-  while [[ "${#id1}" -gt 0 && "${#id2}" -gt 0 ]] ; do
+  while [[ "${#id1}" -gt 0 && "${#id2}" -gt 0 ]]; do
     [ "${id1:0:18}" -gt "${id2:0:18}" ] && return 1 || true
     [ "${id1:0:18}" -lt "${id2:0:18}" ] && return 2 || true
     id1=${id1:18:999}
@@ -212,8 +212,8 @@ sver_equals() { # if $1 == $2 then return 0 else return 1
 
 sver_filter() { # no args, input & output are \n delimited SemVers on stdin
   local line
-  while read -r line ; do
-    if sver_validate "$line" >& /dev/null; then
+  while read -r line; do
+    if sver_validate "$line" >&/dev/null; then
       echo "$line"
     fi
   done
@@ -275,9 +275,9 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
 
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
-  if [ $REPLY -eq 1 ] ; then
+  if [ $REPLY -eq 1 ]; then
     return 0
-  elif [ $REPLY -eq 2 ] ; then
+  elif [ $REPLY -eq 2 ]; then
     return 1
   fi
 
@@ -287,9 +287,9 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   id2=$REPLY
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
-  if [ $REPLY -eq 1 ] ; then
+  if [ $REPLY -eq 1 ]; then
     return 0
-  elif [ $REPLY -eq 2 ] ; then
+  elif [ $REPLY -eq 2 ]; then
     return 1
   fi
 
@@ -299,9 +299,9 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   id2=$REPLY
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
-  if [ $REPLY -eq 1 ] ; then
+  if [ $REPLY -eq 1 ]; then
     return 0
-  elif [ $REPLY -eq 2 ] ; then
+  elif [ $REPLY -eq 2 ]; then
     return 1
   fi
 
@@ -323,9 +323,9 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
     [[ -z "$id1" && -z "$id2" ]] && return 1 || true
     _sver_compare "$id1" "$id2"
     REPLY=$?
-    if [ $REPLY -eq 1 ] ; then
+    if [ $REPLY -eq 1 ]; then
       return 0
-    elif [ $REPLY -eq 2 ] ; then
+    elif [ $REPLY -eq 2 ]; then
       return 1
     fi
   done
@@ -436,9 +436,9 @@ sver_sort() { # no arg, input is list of semvers, output is via stdout
   declare -a versions
 
   # mapfile not supported in bash v3
-  while read -r ; do
-    versions+=($REPLY)
-  done <<< $(sver_filter)
+  while read -r; do
+    versions+=("$REPLY")
+  done <<<"$(sver_filter)"
 
   # bubble sort
   for ((i = 0; i < ${#versions[@]} - 1; i++)); do
@@ -496,8 +496,7 @@ sver_yaml() {
 # - `sver b ma v1.2.3` expands to `sver bump major v1.2.3`
 # - `sver b m v1.2.3` meaningfully errors due to ambiguous 'm'
 #
-# shellcheck disable=SC2154
-if [ "$sver_execed" = true ]; then
+if [ "${SVER_RUN:-true}" = true ]; then
   unset command
   if [ $# = 0 ]; then
     COMP_WORDS=("" "help")
