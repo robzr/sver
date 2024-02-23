@@ -3,7 +3,7 @@
 # shellcheck disable=SC1008,SC2015,SC2096
 # shfmt -i 2 -ci -w
 
-SVER_VERSION=v1.0.0
+SVER_VERSION=v1.1.0-pre0
 SVER_INTRO="\
 sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
@@ -30,13 +30,11 @@ SVER_REGEX='^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]
 _sver_compare() {
   local id1=$1
   local id2=$2
-
   if ! [[ "$id1" =~ ^[0-9]*$ && "$id2" =~ ^[0-9]*$ ]]; then
     [ "$id1" \> "$id2" ] && return 1 || true
     [ "$id1" \< "$id2" ] && return 2 || true
     return 0
   fi
-
   _sver_compare_numeric "$id1" "$id2"
 }
 
@@ -45,17 +43,17 @@ _sver_compare() {
 _sver_compare_numeric() {
   local id1=$1
   local id2=$2
-
   while [[ "${#id1}" -gt 0 && "${#id2}" -gt 0 ]]; do
     [ "${id1:0:18}" -gt "${id2:0:18}" ] && return 1 || true
     [ "${id1:0:18}" -lt "${id2:0:18}" ] && return 2 || true
     id1=${id1:18:999}
     id2=${id2:18:999}
   done
-
   return 0
 }
 
+# Filter bash only segments out with: sed -n '/# bash-only-begin/,/# bash-only-end/!p'
+# bash-only-begin
 _sver_complete_function() {
   if [ "$COMP_CWORD" = 1 ]; then
     # shellcheck disable=SC2046
@@ -79,6 +77,7 @@ _sver_complete_function() {
     esac
   fi
 }
+# bash-only-end
 
 sver_bump_major() {
   sver_get_major "$1"
@@ -109,11 +108,13 @@ sver_bump_patch() {
   fi
 }
 
+# bash-only-begin
 sver_complete() {
   REPLY=
   declare -f _sver_complete_function
   echo complete -F _sver_complete_function sver
 }
+# bash-only-end
 
 sver_constraint() { # $1=version $2=constraint(s); if matches returns 0 else 1
   # Evaluates whether version matches constraint(s). Multiple constraints can
@@ -127,12 +128,17 @@ sver_constraint() { # $1=version $2=constraint(s); if matches returns 0 else 1
   #   <= <version>  - standard comparisons
   #   ~> <sub_version>  - pessimistic constraint operator
   local return_status=0
-  local constraint constraints operator tmp value
+  local constraint constraints operator tmp value version
   sver_normalize -b "$1"
-  local version=$REPLY
+  version=$REPLY
   shift
-  IFS=, read -ra constraints <<<"$@"
-  for constraint in "${constraints[@]}"; do
+  constraints="$*"
+  while [ -n "$constraints" ] ; do
+    constraint=${constraints%%,*}
+    constraint=${constraint#*,}
+    if [ "$constraint" = "$constraints" ] ; then
+      constraints=
+    fi
     operator=${constraint//[^!=<>~]/}
     value=${constraint//[^0-9.]/}
     echo "version:${version}: constraint:${constraint}: operator:${operator}: value:${value}:"
@@ -231,14 +237,22 @@ sver_get_major() {
 
 sver_get_minor() {
   local version=${1#v}
-  version=${version#*\.}
-  REPLY=${version%\.*}
+  if [[ "$version" =~ \.[0-9] ]] ; then
+    version=${version#*\.}
+    REPLY=${version%%\.*}
+  else
+    REPLY=0
+  fi
 }
 
 sver_get_patch() {
   local version=${1#v}
-  version=${version#*\.*\.}
-  REPLY=${version%%[+-]*}
+  if [[ "$version" =~ \.[0-9]+\.[0-9] ]] ; then
+    version=${version#*\.*\.}
+    REPLY=${version%%[+-]*}
+  else
+    REPLY=0
+  fi
 }
 
 sver_get_prerelease() {
@@ -424,7 +438,6 @@ sver_sort() { # no arg, input is list of semvers, output is via stdout
   local i j swapped tmp versions
   declare -a versions
 
-  # mapfile not supported in bash v3
   while read -r; do
     versions+=("$REPLY")
   done <<<"$(sver_filter)"
@@ -477,6 +490,7 @@ sver_yaml() {
   REPLY=
 }
 
+# bash-only-begin
 # CLI handler; translates CLI args to function calls when used in CLI mode
 #
 # Instead of hardcoding a mapping of CLI args => functions, leverage the
@@ -550,3 +564,4 @@ if [ "${SVER_RUN:-true}" = true ]; then
   fi
   exit $status
 fi
+# bash-only-end
