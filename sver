@@ -452,25 +452,24 @@ sver_sort() {
 
 # bash-only-begin
 sver_sort_bash() {
-  local i j swapped tmp versions
+  local i j tmp versions
   declare -a versions
 
   while read -r; do
     versions+=("$REPLY")
   done <<<"$(sver_filter)"
 
-  # bubble sort
-  for ((i = 0; i < ${#versions[@]} - 1; i++)); do
-    swapped=false
-    for ((j = 0; j < ${#versions[@]} - 1 - i; j++)); do
-      if sver_greater_than "${versions[j]}" "${versions[j + 1]}"; then
-        tmp=${versions[j + 1]}
-        versions[j + 1]=${versions[j]}
-        versions[j]=$tmp
-        swapped=true
-      fi
+  # insertion sort
+  i=1
+  while [ "$i" -lt "${#versions[@]}" ]; do
+    j=$i
+    tmp=${versions[i]}
+    while [ "$j" -gt 0 ] && sver_greater_than "${versions[j - 1]}" "$tmp"; do
+      versions[j]=${versions[j - 1]}
+      ((j--))
     done
-    $swapped || break
+    versions[j]=$tmp
+    ((i++))
   done
 
   tmp=$IFS
