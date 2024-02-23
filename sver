@@ -10,6 +10,12 @@ library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure bash (v3)+ for simplicity & speed.
 "
 
+# Filter bash only segments out with: sed -n '/# bash-only-begin/,/# bash-only-end/!p'
+SVER_BASH_ONLY_EXCLUDED=true
+# bash-only-begin
+SVER_BASH_ONLY_EXCLUDED=false
+# bash-only-end
+
 # regex from https://semver.org with changes
 # - added ^v?
 # - removed PCRE named capture groups
@@ -52,7 +58,6 @@ _sver_compare_numeric() {
   return 0
 }
 
-# Filter bash only segments out with: sed -n '/# bash-only-begin/,/# bash-only-end/!p'
 # bash-only-begin
 _sver_complete_function() {
   if [ "$COMP_CWORD" = 1 ]; then
@@ -133,10 +138,10 @@ sver_constraint() { # $1=version $2=constraint(s); if matches returns 0 else 1
   version=$REPLY
   shift
   constraints="$*"
-  while [ -n "$constraints" ] ; do
+  while [ -n "$constraints" ]; do
     constraint=${constraints%%,*}
     constraint=${constraint#*,}
-    if [ "$constraint" = "$constraints" ] ; then
+    if [ "$constraint" = "$constraints" ]; then
       constraints=
     fi
     operator=${constraint//[^!=<>~]/}
@@ -237,7 +242,7 @@ sver_get_major() {
 
 sver_get_minor() {
   local version=${1#v}
-  if [[ "$version" =~ \.[0-9] ]] ; then
+  if [[ "$version" =~ \.[0-9] ]]; then
     version=${version#*\.}
     REPLY=${version%%\.*}
   else
@@ -247,7 +252,7 @@ sver_get_minor() {
 
 sver_get_patch() {
   local version=${1#v}
-  if [[ "$version" =~ \.[0-9]+\.[0-9] ]] ; then
+  if [[ "$version" =~ \.[0-9]+\.[0-9] ]]; then
     version=${version#*\.*\.}
     REPLY=${version%%[+-]*}
   else
@@ -434,7 +439,19 @@ sver_normalize() {
   REPLY=$version_return
 }
 
-sver_sort() { # no arg, input is list of semvers, output is via stdout
+# no arg, input is list of semvers, output is via stdout
+sver_sort() {
+  if [ "$SVER_BASH_ONLY_EXCLUDED" = true ]; then
+    # Warning: busybox compatible, but an approximation as it does not sort
+    # prereleases properly
+    sort -t. -nk1 -nk2 -nk3 -k4
+  else
+    sver_sort_bash
+  fi
+}
+
+# bash-only-begin
+sver_sort_bash() {
   local i j swapped tmp versions
   declare -a versions
 
@@ -463,6 +480,7 @@ sver_sort() { # no arg, input is list of semvers, output is via stdout
   IFS=$tmp
   REPLY=
 }
+# bash-only-end
 
 sver_validate() {
   REPLY=
