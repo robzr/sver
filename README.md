@@ -23,21 +23,22 @@ optimized, portable, pure bash (v3+) for simplicity & speed.
 ### Installation
 It is a self contained bash script, so you can clone the repo and run directly.
 However, here are some other convenient ways to install it.
-#### curl
-You can simply curl a version directly.
-```
-curl -LO https://github.com/robzr/sver/releases/download/v1.0.0/sver
-```
 
 #### Homebrew
 A Homebrew tap is available.
 ```
 brew tap robzr/sver
-brew installs ver
+brew install sver
 ```
-If we can get enough momentum for this project on GitHub, and meet Homebrew
+If we can get enough momentum for this project on GitHub to meet Homebrew
 criteria for a core formula, it will be added! This requires more than 75 stars,
 30 forks or 30 watchers.
+
+#### curl
+You can simply curl a version directly.
+```
+curl -LO https://github.com/robzr/sver/releases/download/v1.0.0/sver
+```
 
 #### asdf
 Coming soon, working on an asdf plugin.
