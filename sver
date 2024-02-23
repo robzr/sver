@@ -14,10 +14,7 @@ Written in optimized, portable, pure bash (v3)+ for simplicity & speed.
 # - added ^v?
 # - removed PCRE named capture groups
 # - '\d' -> '[0-9]'
-SVER_REGEX='^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)'
-SVER_REGEX+='(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)'
-SVER_REGEX+='(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)'
-SVER_REGEX+=')*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
+SVER_REGEX='^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
 
 #
 # All functions are reusable and use the same syntax as the CLI. The CLI is a
@@ -225,37 +222,29 @@ sver_get_build_metadata() {
   if [ "$REPLY" = "$1" ]; then
     REPLY=
   fi
-  REPLY=${REPLY%+*}
 }
 
 sver_get_major() {
-  local words
-  IFS=. read -ra words <<<"$1"
-  REPLY=${words[0]#v}
+  local version=${1#v}
+  REPLY=${version%%\.*}
 }
 
 sver_get_minor() {
-  local words
-  IFS=. read -ra words <<<"$1"
-  REPLY=${words[1]}
-  if [ -z "$REPLY" ]; then
-    REPLY=0
-  fi
+  local version=${1#v}
+  version=${version#*\.}
+  REPLY=${version%\.*}
 }
 
 sver_get_patch() {
-  local words
-  IFS=. read -ra words <<<"$1"
-  REPLY=${words[2]/[a-zA-Z+-]*/}
-  if [ -z "$REPLY" ]; then
-    REPLY=0
-  fi
+  local version=${1#v}
+  version=${version#*\.*\.}
+  REPLY=${version%%[+-]*}
 }
 
 sver_get_prerelease() {
-  REPLY=${1%+*}
-  REPLY=${REPLY#*-}
-  if [ "$REPLY" = "${1%+*}" ]; then
+  local prerelease=${1%%+*}
+  REPLY=${prerelease#*-}
+  if [ "$REPLY" = "$prerelease" ]; then
     REPLY=
   fi
 }
