@@ -28,7 +28,7 @@ However, here are some other convenient ways to install it.
 A [PR](https://github.com/asdf-vm/asdf-plugins/pull/965) has been opened to add `sver`
 into the asdf plugin registry; until that happens, you can manually specify the asdf
 plugin repo.
-```
+```bash
 asdf plugin add sver https://github.com/robzr/asdf-sver.git
 asdf install sver latest
 asdf global sver 1.0.0
@@ -36,13 +36,13 @@ asdf global sver 1.0.0
 
 #### curl
 You can simply curl a version directly.
-```
+```bash
 curl -LO https://github.com/robzr/sver/releases/download/v1.0.0/sver
 ```
 
 #### Homebrew
 A Homebrew tap is available.
-```
+```bash
 brew tap robzr/sver
 brew install sver
 ```
@@ -52,7 +52,7 @@ criteria for a core formula, it will be added! This requires more than 75 stars,
 
 ### Command
 See `sver help` for documentation.
-```bash
+```text
 sver v1.0.0 (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure bash (v3)+ for simplicity & speed.
