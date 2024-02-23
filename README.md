@@ -5,24 +5,24 @@ Semver (Semantic Version) parsing & utility script/function library in pure bash
 **sver** is a self contained cli tool and function library implementing a
 [Semantic Versioning 2](https://semver.org) compliant parser and utilities.
 Written in optimized, portable, pure Bash (v3+) for simplicity & speed, and
-can be even used as a function library in Busybox Dash.
+can be even used as a function library in Busybox Dash/Ash.
 
 ### Features
 - bump or get version identifiers (major, minor, patch, prerelease, build_metadata)
 - precedence comparison functions strictly implement SemVer spec
 - version constraint evaluation using common constraint syntax with chaining
-- deconstruct semver identifiers and output in json or yaml
+- deconstruct SemVer identifiers and output in json or yaml
 - validate a version or filter a list of versions for valid versions within
-- sort versions w/ semver precedence using sort routine written with bash builtins
-- bash command line completion function & injector built in
-- uses bash primitives and builtins exclusively for speed & portability
-- single script usable as a CLI or mixin bash function library (documentation in source)
+- sort versions w/ SemVer precedence using fully builtin sort routine
+- Bash command line completion function & injector built in
+- uses Bash primitives and builtins exclusively for speed & portability
+- single script usable as a CLI or mixin Bash/Dash/Ash function library
 - comprehensive [test](tests) coverage
-- compatible with bash v3 for us poor macOS users
+- compatible with Bash v3 for us poor macOS users
 
 ## Usage
 ### Installation
-It is a self contained bash script, so you can clone the repo and run directly.
+It is a self contained Bash script, so you can clone the repo and run directly.
 However, here are some other convenient ways to install it.
 
 #### asdf
@@ -56,7 +56,7 @@ See `sver help` for documentation.
 ```text
 sver v1.0.0 (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
-Written in optimized, portable, pure bash (v3)+ for simplicity & speed.
+Written in optimized, portable, pure Bash (v3)+ for simplicity & speed.
 
 Usage: sver <command> [<sub_command>] [<version>] [<constraint>]
 
@@ -64,7 +64,7 @@ Commands:
   bump major <version>
   bump minor <version>
   bump patch <version>
-  complete -- bash command completion, use: . /dev/stdin <<< "$(sver complete)"
+  complete -- Bash command completion, use: . /dev/stdin <<< "$(sver complete)"
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
@@ -122,7 +122,7 @@ Bash builtin `compgen`, which is not available in Dash (commonly used as the
 default shell in Alpine Linux and other compact distributions that use Busybox).
 Therefore, as the script is written, it will not function in Dash. However,
 all of the core **sver** functions can be used, although the `sort` function,
-differs from the bash implementation, by using a shell call to Busybox `sort`,
+differs from the Bash implementation, by using a shell call to Busybox `sort`,
 and does not fully sort prereleases according to SemVer spec. Every other
 function is identical. To use **sver** in Dash, the Bash specific syntax needs
 to first be stripped out, which can be done with the following command (even

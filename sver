@@ -7,10 +7,10 @@ SVER_VERSION=v1.1.0-pre0
 SVER_INTRO="\
 sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
-Written in optimized, portable, pure bash (v3)+ for simplicity & speed.
+Written in optimized, portable, pure Bash (v3)+ for simplicity & speed.
 "
 
-# Filter bash only segments out with: sed -n '/# bash-only-begin/,/# bash-only-end/!p'
+# Filter Bash only segments out with: sed -n '/# bash-only-begin/,/# bash-only-end/!p'
 SVER_BASH_ONLY_EXCLUDED=true
 # bash-only-begin
 SVER_BASH_ONLY_EXCLUDED=false
@@ -28,7 +28,7 @@ SVER_REGEX='^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]
 #
 # Unless otherwise noted, function arguments are $1 == version, and strings are
 # returned via the $REPLY variable wherever practical in order to eliminate an
-# unnecessary child process. Even the sort routine is written in pure bash.
+# unnecessary child process. Even the sort routine is written in pure Bash.
 #
 
 # string / big integer compare function
@@ -349,7 +349,7 @@ Commands:
   bump major <version>
   bump minor <version>
   bump patch <version>
-  complete -- bash command completion, use: . /dev/stdin <<< \"\$(sver complete)\"
+  complete -- Bash command completion, use: . /dev/stdin <<< \"\$(sver complete)\"
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
