@@ -137,6 +137,6 @@ Permissive [Creative Commons - CC BY 3.0](https://creativecommons.org/licenses/b
 license - same as Semantic Versioning itself.
 
 # TODO
+- fix constraint version substring behavior to consider specified identifiers
 - add unit testing for constraints
-- constraint sub-version may need work (ex: `v1.2.3 <= v1`)
 - finish dash functionality
