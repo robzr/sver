@@ -314,10 +314,10 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
 
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
-  if [ $REPLY -eq 1 ]; then
+  if [ "$REPLY" -eq 1 ]; then
     REPLY=
     return 0
-  elif [ $REPLY -eq 2 ]; then
+  elif [ "$REPLY" -eq 2 ]; then
     REPLY=
     return 1
   fi
@@ -332,10 +332,10 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   fi
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
-  if [ $REPLY -eq 1 ]; then
+  if [ "$REPLY" -eq 1 ]; then
     REPLY=
     return 0
-  elif [ $REPLY -eq 2 ]; then
+  elif [ "$REPLY" -eq 2 ]; then
     REPLY=
     return 1
   fi
@@ -350,10 +350,10 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   fi
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
-  if [ $REPLY -eq 1 ]; then
+  if [ "$REPLY" -eq 1 ]; then
     REPLY=
     return 0
-  elif [ $REPLY -eq 2 ]; then
+  elif [ "$REPLY" -eq 2 ]; then
     REPLY=
     return 1
   fi
@@ -376,10 +376,10 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
     [[ -z "$id1" && -z "$id2" ]] && return 1 || true
     _sver_compare "$id1" "$id2"
     REPLY=$?
-    if [ $REPLY -eq 1 ]; then
+    if [ "$REPLY" -eq 1 ]; then
       REPLY=
       return 0
-    elif [ $REPLY -eq 2 ]; then
+    elif [ "$REPLY" -eq 2 ]; then
       REPLY=
       return 1
     fi

@@ -1,10 +1,5 @@
 # Test file for tests/run_tests.sh
 
-# Format is (generally):
-#   <command>:
-#     <subcommand>:
-#       <input_value>: <expected_output>
-#
 bump:
   major:
     v0.0.0: 1.0.0
@@ -18,31 +13,74 @@ bump:
     v0.0.0: 0.0.1
     v1.2.3-pre+build: 1.2.3
     v5.4.3-pre.v1.2.3: 5.4.3 # Because we have a prerelease, bump patch simply drops the prerelease.
-get:
-  major:
-    v0.0.0: 0
-    v1.2.3-pre+build: 1
-    v5.4.3-pre.v1.2.3: 5
-  minor:
-    v0.0.0: 0
-    v1.2.3-pre+build: 2
-    v5.4.3-pre.v1.2.3: 4
-  patch:
-    v0.0.0: 0
-    v1.2.3-pre+build: 3
-    v5.4.3-pre.v1.2.3: 3
-  prerelease:
-    v0.0.0: ""
-    v1.2.3-pre+build: pre
-    v5.4.3-pre.v1.2.3: pre.v1.2.3
-  build_metadata:
-    v0.0.0: ""
-    v1.2.3-pre+build: build
-    v5.4.3-pre.v1.2.3: ""
-
-# valid and invalid example versions from https://regex101.com/r/Ly7O1x/3/ as per semver.org
-#
-examples:
+constraint:
+  "> v1":
+    "0.9.9": false
+    "1.0.0": false
+    "1.2.3": false
+    "1.9.9": false
+    "2.0.0": true
+  ">= v1":
+    "0.9.9": false
+    "1.0.0": true
+    "1.2.3": true
+    "1.9.9": true
+    "2.0.0": true
+  "< v1":
+    "0.9.9": true
+    "1.0.0": false
+    "1.2.3": false
+    "1.9.9": false
+    "2.0.0": false
+  "<= v1":
+    "0.9.9": true
+    "1.0.0": true
+    "1.2.3": true
+    "1.9.9": true
+    "2.0.0": false
+  "= v1":
+    "0.9.9": false
+    "1.0.0": true
+    "1.2.3": true
+    "1.9.9": true
+    "2.0.0": false
+  "!= v1.2":
+    "0.9.9": true
+    "1.0.0": true
+    "1.2.3": false
+    "1.9.9": true
+    "2.0.0": true
+  "= v1, <= v1.2.3":
+    "0.9.9": false
+    "1.0.0": true
+    "1.2.3": true
+    "1.9.9": false
+    "2.0.0": false
+  "!= v1":
+    "0.9.9": true
+    "1.0.0": false
+    "1.2.3": false
+    "1.9.9": false
+    "2.0.0": true
+  "~> v1.3":
+    "0.9.9": false
+    "1.0.0": false
+    "1.2.3": false
+    "1.9.9": true
+    "2.0.0": false
+  "> v1.0, < v2":
+    "0.9.9": false
+    "1.0.0": false
+    "1.2.3": true
+    "1.9.9": true
+    "2.0.0": false
+  "~> v1.0, != v1.0.0, < v1.9":
+    "0.9.9": false
+    "1.0.0": false
+    "1.2.3": true
+    "1.9.9": false
+    "2.0.0": false
+examples: # valid and invalid example versions from https://regex101.com/r/Ly7O1x/3/ as per semver.org
   invalid: |
     1
     1.2
@@ -148,3 +186,26 @@ examples:
     1.0.0+0.build.1-rc.10000aaa-kk-0.1
     99999999999999999999999.999999999999999999.99999999999999999
     1.0.0-0A.is.legal
+  valid_max: 99999999999999999999999.999999999999999999.99999999999999999
+  valid_min: 0.0.4
+get:
+  major:
+    v0.0.0: 0
+    v1.2.3-pre+build: 1
+    v5.4.3-pre.v1.2.3: 5
+  minor:
+    v0.0.0: 0
+    v1.2.3-pre+build: 2
+    v5.4.3-pre.v1.2.3: 4
+  patch:
+    v0.0.0: 0
+    v1.2.3-pre+build: 3
+    v5.4.3-pre.v1.2.3: 3
+  prerelease:
+    v0.0.0: ""
+    v1.2.3-pre+build: pre
+    v5.4.3-pre.v1.2.3: pre.v1.2.3
+  build_metadata:
+    v0.0.0: ""
+    v1.2.3-pre+build: build
+    v5.4.3-pre.v1.2.3: ""
