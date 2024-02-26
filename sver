@@ -3,7 +3,7 @@
 # shellcheck disable=SC1008,SC2015,SC2096
 # shfmt -i 2 -ci -w
 
-SVER_VERSION=v1.1.0-pre0
+SVER_VERSION=v1.1.0-pre1
 SVER_INTRO="\
 sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
@@ -21,6 +21,8 @@ SVER_BASH_ONLY_EXCLUDED=false
 # - removed PCRE named capture groups
 # - '\d' -> '[0-9]'
 SVER_REGEX='^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
+# same as above, but optional minor/patch
+SVER_SUB_REGEX='^v?(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))?(\.(0|[1-9][0-9]*))?(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
 
 #
 # All functions are reusable and use the same syntax as the CLI. The CLI is a
@@ -63,7 +65,7 @@ _sver_complete_function() {
   if [ "$COMP_CWORD" = 1 ]; then
     # shellcheck disable=SC2046
     read -ra COMPREPLY <<<$(compgen -W \
-      "bump complete constraint equals filter get greater_than help json less_than sort validate version yaml" \
+      "bump complete constraint equals filter get greater_than help json less_than max min sort validate version yaml" \
       "${COMP_WORDS[1]}" || true)
   elif [ "$COMP_CWORD" = 2 ]; then
     case "${COMP_WORDS[1]}" in
@@ -140,13 +142,12 @@ sver_constraint() { # $1=version $2=constraint(s); if matches returns 0 else 1
   constraints="$*"
   while [ -n "$constraints" ]; do
     constraint=${constraints%%,*}
-    constraint=${constraint#*,}
+    constraints=${constraints#*,}
     if [ "$constraint" = "$constraints" ]; then
       constraints=
     fi
     operator=${constraint//[^!=<>~]/}
     value=${constraint//[^0-9.]/}
-    echo "version:${version}: constraint:${constraint}: operator:${operator}: value:${value}:"
     if [ "$operator" = "=" ]; then
       if ! sver_equals "$version" "$value"; then
         return_status=1
@@ -184,18 +185,18 @@ sver_constraint() { # $1=version $2=constraint(s); if matches returns 0 else 1
       local value_minor=$REPLY
       sver_get_patch "$value"
       local value_patch=$REPLY
-      if [[ "$value" =~ ^[^.]+\.[^.]+\.[^.]+ ]]; then # floating patch
+      if [ -n "$value_patch" ]; then # floating patch
         if [ "$version_major" -ne "$value_major" ] ||
           [ "$version_minor" -ne "$value_minor" ] ||
           [ "$version_patch" -lt "$value_patch" ]; then
           return_status=1
         fi
-      elif [[ "$value" =~ ^[^.]+\.[^.]+ ]]; then # floating minor
+      elif [ -n "$value_minor" ]; then # floating minor
         if [ "$version_major" -ne "$value_major" ] ||
           [ "$version_minor" -lt "$value_minor" ]; then
           return_status=1
         fi
-      elif [[ "$value" =~ ^[^.]+\.[^.]+ ]]; then # floating major
+      else # floating major
         if [ "$version_major" -lt "$value_major" ]; then
           return_status=1
         fi
@@ -210,21 +211,51 @@ sver_constraint() { # $1=version $2=constraint(s); if matches returns 0 else 1
 }
 
 sver_equals() { # if $1 == $2 then return 0 else return 1
+  local tmp
+  # is there any advantage to normalizing?
   sver_normalize -b "$1"
   local version1=$REPLY
   sver_normalize -b "$2"
   local version2=$REPLY
   REPLY=
-  [ "$version1" = "$version2" ]
+  if sver_validate "$2"; then
+    [ "$version1" = "$version2" ]
+  else
+    sver_get_major "$version1"
+    tmp=$REPLY
+    sver_get_major "$version2"
+    if _sver_compare_numeric "$tmp" "$REPLY"; then
+      sver_get_minor "$version1"
+      tmp=$REPLY
+      sver_get_minor "$version2"
+      if [ -z "$REPLY" ] || _sver_compare_numeric "$tmp" "$REPLY"; then
+        REPLY=
+        return 0
+      fi
+    fi
+    REPLY=
+    return 1
+  fi
 }
 
 sver_filter() { # no args, input & output are \n delimited SemVers on stdin
   local line
-  while read -r line; do
-    if sver_validate "$line" >&/dev/null; then
-      echo "$line"
-    fi
-  done
+  local version_sub=$1
+  if [ -z "$version_sub" ]; then
+    while read -r line; do
+      if sver_validate "$line" >&/dev/null; then
+        echo "$line"
+      fi
+    done
+  else
+    while read -r line; do
+      if sver_validate "$line" >&/dev/null; then
+        if sver_equals "$line" "$version_sub"; then
+          echo "$line"
+        fi
+      fi
+    done
+  fi
   REPLY=
 }
 
@@ -246,7 +277,7 @@ sver_get_minor() {
     version=${version#*\.}
     REPLY=${version%%\.*}
   else
-    REPLY=0
+    REPLY=
   fi
 }
 
@@ -256,7 +287,7 @@ sver_get_patch() {
     version=${version#*\.*\.}
     REPLY=${version%%[+-]*}
   else
-    REPLY=0
+    REPLY=
   fi
 }
 
@@ -284,8 +315,10 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
   if [ $REPLY -eq 1 ]; then
+    REPLY=
     return 0
   elif [ $REPLY -eq 2 ]; then
+    REPLY=
     return 1
   fi
 
@@ -293,11 +326,17 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   id1=$REPLY
   sver_get_minor "$version2"
   id2=$REPLY
+  if [ -z "$id2" ]; then
+    REPLY=
+    return 1
+  fi
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
   if [ $REPLY -eq 1 ]; then
+    REPLY=
     return 0
   elif [ $REPLY -eq 2 ]; then
+    REPLY=
     return 1
   fi
 
@@ -305,11 +344,17 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
   id1=$REPLY
   sver_get_patch "$version2"
   id2=$REPLY
+  if [ -z "$id2" ]; then
+    REPLY=
+    return 1
+  fi
   _sver_compare_numeric "$id1" "$id2"
   REPLY=$?
   if [ $REPLY -eq 1 ]; then
+    REPLY=
     return 0
   elif [ $REPLY -eq 2 ]; then
+    REPLY=
     return 1
   fi
 
@@ -332,18 +377,21 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
     _sver_compare "$id1" "$id2"
     REPLY=$?
     if [ $REPLY -eq 1 ]; then
+      REPLY=
       return 0
     elif [ $REPLY -eq 2 ]; then
+      REPLY=
       return 1
     fi
   done
+  REPLY=
   return 1
 }
 
 sver_help() {
   # shellcheck disable=SC1079
   echo "${SVER_INTRO}
-Usage: sver <command> [<sub_command>] [<version>] [<constraint>]
+Usage: sver <command> [<sub_command>] [<version>|<option> ...]
 
 Commands:
   bump major <version>
@@ -353,7 +401,7 @@ Commands:
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
-  filter -- filters stdin list, returns only valid SemVers
+  filter [filter] -- filters stdin list, returns only valid SemVers
   greater_than <version1> <version2> -- version1 > version2 ? exit 0 : exit 1
   get major <version>
   get minor <version>
@@ -363,7 +411,9 @@ Commands:
   help
   json <version> -- displays JSON map of components
   less_than <version1> <version2> -- version1 < version2 ? 0 : exit 1
-  sort -- sorts stdin list of SemVers
+  max [filter] -- returns max value from stdin list
+  min [filter] -- returns min value from stdin list
+  sort [-r] [filter] -- sorts stdin list of SemVers (-r for reverse sort)
   validate <version> -- version is valid ? exit 0 : exit 1
   version
   yaml <version> -- displays YAML map of components
@@ -372,21 +422,23 @@ Versions:
   Semantic Versioning 2 (https://semver.org) compliant versions, with an
   optional \"v\" prefix tolerated on input.
 
+Filters:
+  Some commands take an optional <filter> argument, which is a version substring
+  that any output must match. Examples: \"filter v5.0\", \"sort v1\", \"min v1.2.3-\"
+
 Constraints:
-  Version constraint supports the following operators. Multiple comma-delimited
-  constraints can be used. Abbreviated version substrings can be used, and are
-  especially useful with pessimistic constraint.
+  Multiple comma-delimited constraints can be chained together (boolean AND).
+  Version substrings can be used, and are especially useful with the pessimistic
+  constraint operator. Supported operators:
     = <version_substring> -- equal
     > <version_substring> -- greater than
     >= <version_substring> -- greater than or equal to
     < <version_substring> -- less than
     <= <version_substring> -- less than or equal to
-    ~> <version_substring> -- pessimistic constraint operator, allows the least
-      significant (rightmost) identifier specified in the constraint to be
-      incremented, but prevents more significant (further left) identifiers
-      from being incremented.
-  Examples: \"~> v1.2, != v1.3\", \"> v1, <= v2.4.7, != v2.4.4\"
-"
+    ~> <version_substring> -- pessimistic constraint operator - least significant
+       (rightmost) identifier specified in the constraint matched with >=, but 
+       more significant (further left) identifiers must be equal
+  Examples: \"~> v1.2, != v1.3\", \"> v1, <= v2.5, != v2.4.4\""
 }
 
 sver_json() {
@@ -412,6 +464,32 @@ sver_less_than() { # if $1 < $2 then return 0 else return 1
   sver_greater_than "$2" "$1"
 }
 
+sver_min() {
+  local min version
+  local filter=$1
+  while read -r version; do
+    if sver_validate "$version" >&/dev/null; then
+      if [ -z "$min" ] || sver_less_than "$version" "$min"; then
+        min=$version
+      fi
+    fi
+  done
+  REPLY=$min
+}
+
+sver_max() {
+  local max version
+  local filter=$1
+  while read -r version; do
+    if sver_validate "$version" >&/dev/null; then
+      if [ -z "$max" ] || sver_greater_than "$version" "$max"; then
+        max=$version
+      fi
+    fi
+  done
+  REPLY=$max
+}
+
 sver_normalize() {
   local version_return
   local keep_build_metadata=true
@@ -423,17 +501,21 @@ sver_normalize() {
   sver_get_major "$version"
   version_return=$REPLY
   sver_get_minor "$version"
-  version_return="${version_return}.${REPLY}"
-  sver_get_patch "$version"
-  version_return="${version_return}.${REPLY}"
-  sver_get_prerelease "$version"
   if [ -n "$REPLY" ]; then
-    version_return="${version_return}-${REPLY}"
-  fi
-  if $keep_build_metadata; then
-    sver_get_build_metadata "$version"
+    version_return="${version_return}.${REPLY}"
+    sver_get_patch "$version"
     if [ -n "$REPLY" ]; then
-      version_return="${version_return}+${REPLY}"
+      version_return="${version_return}.${REPLY}"
+      sver_get_prerelease "$version"
+      if [ -n "$REPLY" ]; then
+        version_return="${version_return}-${REPLY}"
+      fi
+      if $keep_build_metadata; then
+        sver_get_build_metadata "$version"
+        if [ -n "$REPLY" ]; then
+          version_return="${version_return}+${REPLY}"
+        fi
+      fi
     fi
   fi
   REPLY=$version_return
@@ -441,30 +523,44 @@ sver_normalize() {
 
 # no arg, input is list of semvers, output is via stdout
 sver_sort() {
+  local filter reverse_flag
+  if [ "$1" = "-r" ]; then
+    reverse_flag=$1
+    shift
+  fi
+  if [ -n "$1" ]; then
+    filter=$1
+  fi
   if [ "$SVER_BASH_ONLY_EXCLUDED" = true ]; then
     # Warning: busybox compatible, but an approximation as it does not sort
     # prereleases properly
-    sort -t. -nk1 -nk2 -nk3 -k4
+    # shellcheck disable=SC2086
+    sver_filter "$filter" | sort $reverse_flag -t. -nk1 -nk2 -nk3 -k4
   else
-    sver_sort_bash
+    sver_filter "$filter" | sver_sort_bash "$reverse_flag"
   fi
 }
 
 # bash-only-begin
 sver_sort_bash() {
   local i j tmp versions
+  local comparison_function='sver_greater_than'
   declare -a versions
+
+  if [ "$1" = "-r" ]; then
+    comparison_function='sver_less_than'
+  fi
 
   while read -r; do
     versions+=("$REPLY")
-  done <<<"$(sver_filter)"
+  done
 
   # insertion sort
   i=1
   while [ "$i" -lt "${#versions[@]}" ]; do
     j=$i
     tmp=${versions[i]}
-    while [ "$j" -gt 0 ] && sver_greater_than "${versions[j - 1]}" "$tmp"; do
+    while [ "$j" -gt 0 ] && $comparison_function "${versions[j - 1]}" "$tmp"; do
       versions[j]=${versions[j - 1]}
       ((j--))
     done
@@ -483,7 +579,12 @@ sver_sort_bash() {
 
 sver_validate() {
   REPLY=
-  [[ "$1" =~ $SVER_REGEX ]]
+  if [ "$1" = "-s" ]; then
+    shift
+    [[ "$1" =~ $SVER_SUB_REGEX ]]
+  else
+    [[ "$1" =~ $SVER_REGEX ]]
+  fi
 }
 
 sver_version() {
@@ -566,8 +667,8 @@ if [ "${SVER_RUN:-true}" = true ]; then
   esac
   case "$command" in
     equals | greater_than | less_than)
-      if ! sver_validate "$2"; then
-        echo "Error: Invalid semver specified (${2})." >&2
+      if ! sver_validate -s "$2"; then
+        echo "Error: Invalid semver substring specified (${2})." >&2
         exit 1
       fi
       ;;
