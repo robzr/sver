@@ -12,7 +12,7 @@ can be even used as a function library in Busybox Dash/Ash.
 - precedence comparison functions strictly implement SemVer spec
 - version constraint evaluation using common constraint syntax with chaining
 - deconstruct SemVer identifiers and output in json or yaml
-- validate a version or filter a list of versions for valid versions within
+- filter list of versions for valid versions that match an optional filter
 - sort versions w/ SemVer precedence using fully builtin sort routine
 - Bash command line completion function & injector built in
 - uses Bash primitives and builtins exclusively for speed & portability
@@ -54,11 +54,11 @@ criteria for a core formula, it will be added! This requires more than 75 stars,
 ### Command line usage
 See `sver help` for documentation.
 ```text
-sver v1.0.0 (https://github.com/robzr/sver) self contained cli tool and function
+sver v1.1.0 (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure Bash (v3)+ for simplicity & speed.
 
-Usage: sver <command> [<sub_command>] [<version>] [<constraint>]
+Usage: sver <command> [<sub_command>] [<version>|<option> ...]
 
 Commands:
   bump major <version>
@@ -68,7 +68,7 @@ Commands:
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
-  filter -- filters stdin list, returns only valid SemVers
+  filter [filter] -- filters stdin list, returns only valid SemVers
   greater_than <version1> <version2> -- version1 > version2 ? exit 0 : exit 1
   get major <version>
   get minor <version>
@@ -78,7 +78,9 @@ Commands:
   help
   json <version> -- displays JSON map of components
   less_than <version1> <version2> -- version1 < version2 ? 0 : exit 1
-  sort -- sorts stdin list of SemVers
+  max [filter] -- returns max value from stdin list
+  min [filter] -- returns min value from stdin list
+  sort [-r] [filter] -- sorts stdin list of SemVers (-r for reverse sort)
   validate <version> -- version is valid ? exit 0 : exit 1
   version
   yaml <version> -- displays YAML map of components
@@ -87,20 +89,23 @@ Versions:
   Semantic Versioning 2 (https://semver.org) compliant versions, with an
   optional "v" prefix tolerated on input.
 
+Filters:
+  Some commands take an optional <filter> argument, which is a version substring
+  that any output must match. Examples: "filter v5.0", "sort v1", "min v1.2.3-"
+
 Constraints:
-  Version constraint supports the following operators. Multiple comma-delimited
-  constraints can be used. Abbreviated version substrings can be used, and are
-  especially useful with pessimistic constraint.
+  Multiple comma-delimited constraints can be chained together (boolean AND).
+  Version substrings can be used, and are especially useful with the pessimistic
+  constraint operator. Supported operators:
     = <version_substring> -- equal
     > <version_substring> -- greater than
     >= <version_substring> -- greater than or equal to
     < <version_substring> -- less than
     <= <version_substring> -- less than or equal to
-    ~> <version_substring> -- pessimistic constraint operator, allows the least
-      significant (rightmost) identifier specified in the constraint to be
-      incremented, but prevents more significant (further left) identifiers
-      from being incremented.
-  Examples: "~> v1.2, != v1.3", "> v1, <= v2.4.7, != v2.4.4"
+    ~> <version_substring> -- pessimistic constraint operator - least significant
+       (rightmost) identifier specified in the constraint matched with >=, but
+       more significant (further left) identifiers must be equal
+  Examples: "~> v1.2, != v1.3", "> v1, <= v2.5, != v2.4.4"
 ```
 
 ### Bash function library
@@ -135,8 +140,3 @@ sed -n '/# bash-only-begin/,/# bash-only-end/!p' sver > sver.dash
 # License
 Permissive [Creative Commons - CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)
 license - same as Semantic Versioning itself.
-
-# TODO
-- fix constraint version substring behavior to consider specified identifiers
-- add unit testing for constraints
-- finish dash functionality
