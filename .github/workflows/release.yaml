@@ -2,6 +2,9 @@ name: Release
 on:
   push:
 
+env:
+  GH_TOKEN: ${{ github.token }}
+
 jobs:
   Release:
     name: Release
