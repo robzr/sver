@@ -1,0 +1,48 @@
+name: Release
+on:
+  push: main
+
+jobs:
+  Release:
+    name: Release
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - id: get-version
+        name: Get Version
+        run: |
+          unset version
+          version=$(./sver version)
+          echo "Validating ${version}"
+          ./sver version <<< "$version"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "major=$(./sver get major "$version")" >> "$GITHUB_OUTPUT"
+          echo "minor=$(./sver get minor "$version")" >> "$GITHUB_OUTPUT"
+      - id: is-existing-release
+        name: Checking if Release Exists
+        run: |
+          unset version_already_exists
+          if [ "$(
+              gh release list \
+                --json tagName \
+                --jq '
+                  .[] |
+                  select(.tagName == "${{ steps.get-version.outputs.version }}") |
+                  length > 0
+                '
+            )" = true ] ; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.is-existing-release.outputs.exists == 'false'
+        name: Create New Release
+        run: |
+          gh release \
+            create "$RELEASE" \
+            --generate-notes \
+            --latest \
+            sver
+          git tag -f 'v${{ steps.get-version.outputs.major }}'
+          git tag -f 'v${{ steps.get-version.outputs.major }}.${{ steps.get-version.outputs.minor }}'
+          git push -f --tags
