@@ -1,6 +1,6 @@
 name: Release
 on:
-  push: main
+  push:
 
 jobs:
   Release:
