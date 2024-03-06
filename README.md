@@ -54,7 +54,7 @@ criteria for a core formula, it will be added! This requires more than 75 stars,
 ### Command line usage
 See `sver help` for documentation.
 ```text
-sver v1.1.0 (https://github.com/robzr/sver) self contained cli tool and function
+sver v1.2.0 (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure Bash (v3)+ for simplicity & speed.
 
@@ -68,7 +68,8 @@ Commands:
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
-  filter [filter] -- filters stdin list, returns only valid SemVers
+  filter [constraint] -- filters stdin list, returns only valid SemVers - if
+                         constraint is specified, they also much match
   greater_than <version1> <version2> -- version1 > version2 ? exit 0 : exit 1
   get major <version>
   get minor <version>
@@ -78,9 +79,9 @@ Commands:
   help
   json <version> -- displays JSON map of components
   less_than <version1> <version2> -- version1 < version2 ? 0 : exit 1
-  max [filter] -- returns max value from stdin list
-  min [filter] -- returns min value from stdin list
-  sort [-r] [filter] -- sorts stdin list of SemVers (-r for reverse sort)
+  max [constraint] -- returns max value from stdin list
+  min [constraint] -- returns min value from stdin list
+  sort [-r] [constraint] -- sorts stdin list of SemVers (-r for reverse sort)
   validate <version> -- version is valid ? exit 0 : exit 1
   version
   yaml <version> -- displays YAML map of components
@@ -89,23 +90,21 @@ Versions:
   Semantic Versioning 2 (https://semver.org) compliant versions, with an
   optional "v" prefix tolerated on input.
 
-Filters:
-  Some commands take an optional <filter> argument, which is a version substring
-  that any output must match. Examples: "filter v5.0", "sort v1", "min v1.2.3-"
-
 Constraints:
   Multiple comma-delimited constraints can be chained together (boolean AND).
   Version substrings can be used, and are especially useful with the pessimistic
   constraint operator. Supported operators:
-    = <version_substring> -- equal
+    = <version_substring> -- equal (default if no operator specified)
     > <version_substring> -- greater than
     >= <version_substring> -- greater than or equal to
     < <version_substring> -- less than
     <= <version_substring> -- less than or equal to
     ~> <version_substring> -- pessimistic constraint operator - least significant
-       (rightmost) identifier specified in the constraint matched with >=, but
+       (rightmost) identifier specified in the constraint matched with >=, but 
        more significant (further left) identifiers must be equal
-  Examples: "~> v1.2, != v1.3", "> v1, <= v2.5, != v2.4.4"
+    !pre[release] -- does not contain a prerelease (ie: "stable")
+    !bui[ild_metadata] -- does not contain build_metadata
+  Examples: "~> v1.2, != 1.3", "> 1, <= v2.5, != v2.4.4", "v1, !pre"
 ```
 
 ### Bash function library
