@@ -1,6 +1,8 @@
 name: Release
+
 on:
   push:
+    branches: [main]
 
 env:
   GH_TOKEN: ${{ github.token }}
@@ -8,6 +10,7 @@ env:
 jobs:
   Release:
     name: Release
+    permissions: write-all
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +45,7 @@ jobs:
         name: Create New Release
         run: |
           gh release \
-            create "$RELEASE" \
+            create "${{ steps.get-version.outputs.version }}" \
             --generate-notes \
             --latest \
             sver
