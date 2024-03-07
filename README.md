@@ -11,8 +11,8 @@ can be even used as a function library in Busybox Dash/Ash.
 - get or bump version identifiers (major, minor, patch, prerelease, build\_metadata)
 - min/max/sort/filter lists of versions for valid versions with optional constraint matching
 - version constraint evaluation using common constraint syntax with chaining (multiple constraints)
-- precedence comparisons (sort/equals/greater\_than/less\_than/min/max) strictly implement SemVer spec (most SemVer sorts do not properly implement prerelease precedence comparisions)
-- sort routine written with pure bash builtins with no subshells
+- precedence comparisons (sort/equals/greater\_than/less\_than/min/max) strictly implement SemVer spec (most SemVer sorts do not properly implement prerelease precedence comparisons)
+- sort routine written with pure bash builtins and uses no subshells
 - deconstruct SemVer identifiers and output in json or yaml
 - Bash command line completion function & injector built in
 - uses Bash primitives & builtins exclusively for speed & portability, minimum subshells, no looped subshells
@@ -34,7 +34,7 @@ plugin repo.
 ```bash
 asdf plugin add sver https://github.com/robzr/asdf-sver.git
 asdf install sver latest
-asdf global sver 1.2.0
+asdf global sver latest
 ```
 
 #### curl
@@ -52,6 +52,13 @@ brew install sver
 If we can get enough momentum for this project on GitHub to meet Homebrew
 criteria for a core formula, it will be added! This requires more than 75 stars,
 30 forks or 30 watchers.
+
+### Command line completion
+Command completion is available for Bash users. Simply add the following to your
+`~/.bashrc`:
+```
+. /dev/stdin <<< "$(sver complete)"
+```
 
 ### Command line usage
 See `sver help` for documentation.
@@ -127,8 +134,8 @@ The command line completion and CLI command-to-function mapping depends on the
 Bash builtin `compgen`, which is not available in Dash (commonly used as the
 default shell in Alpine Linux and other compact distributions that use Busybox).
 Therefore, as the script is written, it will not function in Dash. However,
-all of the core **sver** functions can be used, although the `sort` function,
-differs from the Bash implementation, by using a shell call to Busybox `sort`,
+all of the core **sver** functions can be used, although the `sort` function
+differs from the Bash implementation by using a shell call to Busybox `sort`
 and does not fully sort prereleases according to SemVer spec. Every other
 function is identical. To use **sver** in Dash, the Bash specific syntax needs
 to first be stripped out, which can be done with the following command (even
