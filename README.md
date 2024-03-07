@@ -1,5 +1,5 @@
 # sver
-Semver (Semantic Version) parsing & utility script/function library in pure bash
+Semantic Version (SemVer) parsing & utility script/function library in pure bash
 
 ## Overview
 **sver** is a self contained cli tool and function library implementing a
@@ -8,15 +8,17 @@ Written in optimized, portable, pure Bash (v3+) for simplicity & speed, and
 can be even used as a function library in Busybox Dash/Ash.
 
 ### Features
-- bump or get version identifiers (major, minor, patch, prerelease, build_metadata)
-- precedence comparison functions strictly implement SemVer spec
-- version constraint evaluation using common constraint syntax with chaining
+- get or bump version identifiers (major, minor, patch, prerelease, build\_metadata)
+- min/max/sort/filter lists of versions for valid versions with optional constraint matching
+- version constraint evaluation using common constraint syntax with chaining (multiple constraints)
+- precedence comparisons (sort/equals/greater\_than/less\_than/min/max) strictly implement SemVer spec (most SemVer sorts do not properly implement prerelease precedence comparisions)
+- sort routine written with pure bash builtins with no subshells
 - deconstruct SemVer identifiers and output in json or yaml
-- filter list of versions for valid versions that match an optional filter
-- sort versions w/ SemVer precedence using fully builtin sort routine
 - Bash command line completion function & injector built in
-- uses Bash primitives and builtins exclusively for speed & portability
-- single script usable as a CLI or mixin Bash/Dash/Ash function library
+- uses Bash primitives & builtins exclusively for speed & portability, minimum subshells, no looped subshells
+- single small (< 20kB) script usable as a CLI or mixin Bash/Dash/Ash function library
+- always formatted with [shfmt](https://github.com/patrickvane/shfmt)
+- always checked with [shellcheck](https://github.com/koalaman/shellcheck) static analysis tool
 - comprehensive [test](tests) coverage
 - compatible with Bash v3 for us poor macOS users
 
@@ -32,13 +34,13 @@ plugin repo.
 ```bash
 asdf plugin add sver https://github.com/robzr/asdf-sver.git
 asdf install sver latest
-asdf global sver 1.0.0
+asdf global sver 1.2.0
 ```
 
 #### curl
 You can simply curl a version directly.
 ```bash
-curl -LO https://github.com/robzr/sver/releases/download/v1.0.0/sver
+curl -LO https://github.com/robzr/sver/releases/download/v1.2.0/sver
 ```
 
 #### Homebrew

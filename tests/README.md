@@ -8,16 +8,13 @@ Test data is in [tests.yaml](tests.yaml), references to keys below are in this f
 See top level `.bump`.
 
 ### Comparisons (`equals`, `greater_than` & `less_than`)
-Indirectly tested during `bump` and `sort` tests.
-
-### `complete`
-No test coverage.
+Indirectly tested extensively during `bump` and `sort` tests.
 
 ### `constraint`
-TODO
+See top level `.constraint` for unit tests.
 
 ### `get (major|minor|patch|prerelease|build)`
-See top level `.get`.
+See top level `.get` for unit tests.
 
 ### `json` 
 Tested against valid and invalid example versions, see top level `.examples`.
@@ -28,6 +25,7 @@ input is unsorted both with a fixed reverse sort, as well as 5 random "sorts",
 then sorted by sver, and the output is then compared to the pre-sorted input.
 
 ### `filter`
+TODO
 
 ### `validate`
 Tested against valid and invalid example versions, see top level `.examples`.
