@@ -3,7 +3,7 @@
 # shellcheck disable=SC1008,SC2015,SC2096
 # shfmt -i 2 -ci -w
 
-SVER_VERSION=v1.2.0
+SVER_VERSION=v1.2.1
 SVER_INTRO="\
 sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
@@ -124,16 +124,6 @@ sver_complete() {
 # bash-only-end
 
 sver_constraint() { # $1=version $2=constraint(s); if matches returns 0 else 1
-  # Evaluates whether version matches constraint(s). Multiple constraints can
-  # be comma separated and will be valuated with boolean AND logic. Syntax is
-  # whitespace-agnostic and matches other commonly used constraint syntax:
-  #   =  <version>  - equals (build metadata is not considered as per spec)
-  #   != <version>  - not equals
-  #   >  <version>  - standard comparisons
-  #   >= <version>  - standard comparisons
-  #   <  <version>  - standard comparisons
-  #   <= <version>  - standard comparisons
-  #   ~> <sub_version>  - pessimistic constraint operator
   local return_status=0
   local constraint constraints operator tmp value version
   sver_normalize -b "$1"
@@ -404,7 +394,7 @@ sver_greater_than() { # if $1 > $2 then return 0 else return 1
 sver_help() {
   # shellcheck disable=SC1078
   echo "${SVER_INTRO}
-Usage: sver <command> [<sub_command>] [<version>|<option> ...]
+Usage: sver <command> [<sub_command>] [<version>] [(<constraint>|<option>|<version>) ...]
 
 Commands:
   bump major <version>
@@ -414,8 +404,7 @@ Commands:
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
-  filter [constraint] -- filters stdin list, returns only valid SemVers - if
-                         constraint is specified, they also much match
+  filter [constraint] -- filters stdin list, returns only valid SemVers
   greater_than <version1> <version2> -- version1 > version2 ? exit 0 : exit 1
   get major <version>
   get minor <version>
@@ -437,9 +426,11 @@ Versions:
   optional \"v\" prefix tolerated on input.
 
 Constraints:
-  Multiple comma-delimited constraints can be chained together (boolean AND).
-  Version substrings can be used, and are especially useful with the pessimistic
-  constraint operator. Supported operators:
+  Multiple comma-delimited constraints can be chained together (boolean AND) to
+  form a single constraint expression. Commands that take a list of versions on
+  stdin and take a constraint will filter the input for versions matching the
+  constraint expression. Version substrings can be used, and are especially
+  useful with the pessimistic constraint operator. Supported operators:
     = <version_substring> -- equal (default if no operator specified)
     > <version_substring> -- greater than
     >= <version_substring> -- greater than or equal to

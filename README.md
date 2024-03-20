@@ -40,7 +40,7 @@ asdf global sver latest
 #### curl
 You can simply curl a version directly.
 ```bash
-curl -LO https://github.com/robzr/sver/releases/download/v1.2.0/sver
+curl -LO https://github.com/robzr/sver/releases/download/v1.2.1/sver
 ```
 
 #### Homebrew
@@ -63,11 +63,11 @@ Command completion is available for Bash users. Simply add the following to your
 ### Command line usage
 See `sver help` for documentation.
 ```text
-sver v1.2.0 (https://github.com/robzr/sver) self contained cli tool and function
+sver v1.2.1 (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure Bash (v3)+ for simplicity & speed.
 
-Usage: sver <command> [<sub_command>] [<version>|<option> ...]
+Usage: sver <command> [<sub_command>] [<version>] [(<constraint>|<option>|<version>) ...]
 
 Commands:
   bump major <version>
@@ -77,8 +77,7 @@ Commands:
   constraint <version> <constraint(s)> -- version constraint evaluation - if
                               version matches constraint(s) ? exit 0 : exit 1
   equals <version1> <version2> -- version1 == version2 ? exit 0 : exit 1
-  filter [constraint] -- filters stdin list, returns only valid SemVers - if
-                         constraint is specified, they also much match
+  filter [constraint] -- filters stdin list, returns only valid SemVers
   greater_than <version1> <version2> -- version1 > version2 ? exit 0 : exit 1
   get major <version>
   get minor <version>
@@ -100,9 +99,11 @@ Versions:
   optional "v" prefix tolerated on input.
 
 Constraints:
-  Multiple comma-delimited constraints can be chained together (boolean AND).
-  Version substrings can be used, and are especially useful with the pessimistic
-  constraint operator. Supported operators:
+  Multiple comma-delimited constraints can be chained together (boolean AND) to
+  form a single constraint expression. Commands that take a list of versions on
+  stdin and take a constraint will filter the input for versions matching the
+  constraint expression. Version substrings can be used, and are especially
+  useful with the pessimistic constraint operator. Supported operators:
     = <version_substring> -- equal (default if no operator specified)
     > <version_substring> -- greater than
     >= <version_substring> -- greater than or equal to
