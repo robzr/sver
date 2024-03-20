@@ -50,7 +50,6 @@ jobs:
             --generate-notes \
             --latest \
             sver
-            gh release upload "$VERSION" ./sver
           git tag -f "v${MAJOR}"
           git tag -f "v${MAJOR}.${MINOR}"
           git push -f --tags
