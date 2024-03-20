@@ -14,41 +14,43 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
+
       - id: get-version
         name: Get Version
         run: |
-          unset version
-          version=$(./sver version)
-          echo "Validating ${version}"
-          ./sver version <<< "$version"
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "major=$(./sver get major "$version")" >> "$GITHUB_OUTPUT"
-          echo "minor=$(./sver get minor "$version")" >> "$GITHUB_OUTPUT"
+          echo 'json<<EOF' >>"${GITHUB_OUTPUT}"
+          ./sver json "$(./sver version)" | \
+            tee -a "$GITHUB_OUTPUT" | \
+            jq -C
+          echo EOF >>"${GITHUB_OUTPUT}"
+
       - id: is-existing-release
         name: Checking if Release Exists
         run: |
-          unset version_already_exists
-          if [ "$(
-              gh release list \
-                --json tagName \
-                --jq '
-                  .[] |
-                  select(.tagName == "${{ steps.get-version.outputs.version }}") |
-                  length > 0
-                '
-            )" = true ] ; then
-            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          if [ -n "$(
+            gh release list \
+              --json tagName \
+              --jq '.[] | .tagName' | \
+              ./sver filter '${{ fromJSON(steps.get-version.outputs.json).version }}'
+            )" ] ; then
+            echo exists=true >> "$GITHUB_OUTPUT"
           else
-            echo 'exists=false' >> "$GITHUB_OUTPUT"
-          fi
-      - if: steps.is-existing-release.outputs.exists == 'false'
+            echo exists=false >> "$GITHUB_OUTPUT"
+          fi 
+
+      - env:
+          MAJOR: ${{ fromJSON(steps.get-version.outputs.json).major }} 
+          MINOR: ${{ fromJSON(steps.get-version.outputs.json).minor }} 
+          VERSION: v${{ fromJSON(steps.get-version.outputs.json).version }} 
+        if: steps.is-existing-release.outputs.exists == 'false'
         name: Create New Release
         run: |
           gh release \
-            create "${{ steps.get-version.outputs.version }}" \
+            create "$VERSION" \
             --generate-notes \
             --latest \
             sver
-          git tag -f 'v${{ steps.get-version.outputs.major }}'
-          git tag -f 'v${{ steps.get-version.outputs.major }}.${{ steps.get-version.outputs.minor }}'
+            gh release upload "$VERSION" ./sver
+          git tag -f "v${MAJOR}"
+          git tag -f "v${MAJOR}.${MINOR}"
           git push -f --tags
