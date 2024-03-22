@@ -22,14 +22,63 @@ jobs:
           fi
         shell: bash
 
-      - uses: ./
+      - id: sver-version
         name: sver version
+        uses: ./
         with:
           command: version
 
-      - uses: ./
+      - run: |
+          # test sver-version
+          if ! [[ '${{ steps.sver-version.outputs.output }}' =~ ^v[1-9][0-9]*\.[1-9][0-9]*\.[1-9][0-9]* ]] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-version.outputs.output }})'
+            exit 1
+          fi
+
+      - id: sver-max
         name: sver max
+        uses: ./
         with:
           command: max
           input-command: git tag -l
 
+      - run: |
+          # test sver-max
+          if ! [[ '${{ steps.sver-max.outputs.output }}' =~ ^v[1-9][0-9]*\.[1-9][0-9]*\.[1-9][0-9]* ]] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-max.outputs.output }})'
+            exit 1
+          fi
+
+      - id: sver-equals-true
+        name: sver equals (true)
+        uses: ./
+        with:
+          command: sver equals v1.2.3 v1.2.3+build-is-ignored
+
+      - run: |
+          # test sver-equals-true
+          if [ '${{ steps.sver-equals-true }}' != 'true' ] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-equals-true.outputs.output }})'
+            exit 1
+          fi
+
+      - id: sver-equals-false
+        name: sver equals (false)
+        uses: ./
+        with:
+          command: sver equals v1.2.3 v1.2.3-pre.is.not.ignored
+
+      - run: |
+          # test sver-equals-false
+          if [ '${{ steps.sver-equals-true }}' != 'false' ] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-equals-false.outputs.output }})'
+            exit 1
+          fi
