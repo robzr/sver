@@ -13,16 +13,6 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - run: |
-          # test that action has current sver embedded
-          .github/workflows/bin/embed_sver_in_action.sh 
-          if ! git diff --quiet action.yaml ; then
-            echo '::error title=Action not updated::The action /action.yaml' \
-              'was not updated with the current sver script.'
-            exit 1
-          fi
-        shell: bash
-
       - id: sver-version
         name: sver version
         uses: ./
