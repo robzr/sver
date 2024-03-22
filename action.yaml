@@ -1,10 +1,10 @@
 name: sver Action
 
-color: blue
+branding:
+  icon: code
+  color: blue
 
 description: sver SemVer (Semantic Versioning 2) parser, bump & utility action with support for version constraints
-
-icon: code
 
 inputs:
   command:
