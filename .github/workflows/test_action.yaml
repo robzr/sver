@@ -1,0 +1,35 @@
+name: Test Action
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Test Action
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - run: |
+          # test that action has current sver embedded
+          .github/workflows/bin/embed_sver_in_action.sh 
+          if ! git diff --quiet action.yaml ; then
+            echo '::error title=Action not updated::The action /action.yaml' \
+              'was not updated with the current sver script.'
+            exit 1
+          fi
+        shell: bash
+
+      - uses: ./
+        name: sver version
+        with:
+          command: version
+
+      - uses: ./
+        name: sver max
+        with:
+          command: max
+          input-command: git tag -l
+
