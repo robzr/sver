@@ -726,7 +726,7 @@ runs:
         if ${{ inputs.input-command == '' && 'false' || 'true' }} ; then
           INPUT_FILE=$(mktemp)
           echo '::group::Run input-command'
-          ${{ inputs.input-command }} | tee "${INPUT_FILE}"
+          ${{ inputs.input-command == '' && true || inputs.input-command }} | tee "${INPUT_FILE}"
           echo '::endgroup::'
         elif ${{ inputs.input == '' && 'false' || 'true' }} ; then
           INPUT_FILE=$(mktemp)
@@ -738,7 +738,7 @@ runs:
         OUTPUT_FILE=$(mktemp)
         RETURN_VALUE='true'
 
-        echo '::group::Run sver'
+        echo '::group::sver'
         cat "$INPUT_FILE" | "$SVER_BIN" ${{ inputs.command }} >"${OUTPUT_FILE}" || RETURN_VALUE=false
         cat "$OUTPUT_FILE"
         echo '::endgroup::'
