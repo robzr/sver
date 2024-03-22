@@ -8,11 +8,9 @@ inputs:
     description: sver (https://github.com/robzr/sver) command and arguments.
     required: false
   input:
-    default: ''
     description: List of input versions, used with filter, max, min, or sort commands.
     required: false
   input-command:
-    default: ''
     description: Command to be run, the output will be used in place of the input variable.
     required: false
 
@@ -727,8 +725,8 @@ runs:
         
         if ${{ inputs.input-command == '' && 'false' || 'true' }} ; then
           INPUT_FILE=$(mktemp)
-          echo '::group::Running input-command'
-          ${{ inputs.input-command }} >"${INPUT_FILE}"
+          echo '::group::Run input-command'
+          ${{ inputs.input-command }} | tee "${INPUT_FILE}"
           echo '::endgroup::'
         elif ${{ inputs.input == '' && 'false' || 'true' }} ; then
           INPUT_FILE=$(mktemp)
@@ -740,7 +738,10 @@ runs:
         OUTPUT_FILE=$(mktemp)
         RETURN_VALUE='true'
 
-        cat "$INPUTFILE" | "$SVER_BIN" ${{ inputs.command }} >"${OUTPUT_FILE}" || RETURN_VALUE=false
+        echo '::group::Run sver'
+        cat "$INPUT_FILE" | "$SVER_BIN" ${{ inputs.command }} >"${OUTPUT_FILE}" || RETURN_VALUE=false
+        cat "$OUTPUT_FILE"
+        echo '::endgroup::'
 
         if [ $(wc -c < "$OUTPUT_FILE") -eq 0 ] ; then
           echo "output=${RETURN_VALUE}" >>"${GITHUB_OUTPUT}"
