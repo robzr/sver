@@ -1,0 +1,68 @@
+name: sver
+
+description: sver SemVer (Semantic Versioning 2) parser, bump & utility action with support for version constraints
+
+inputs:
+  command:
+    default: ''
+    description: sver (https://github.com/robzr/sver) command and arguments.
+    required: false
+  input:
+    default: ''
+    description: List of input versions, used with filter, max, min, or sort commands.
+    required: false
+  input-command:
+    default: ''
+    description: Command to be run, the output will be used in place of the input variable.
+    required: false
+
+outputs:
+  output:
+    description: Output of sver command. JSON/YAML, string or boolean-as-string.
+    value: ${{ steps.run.outputs.output }}
+
+runs:
+  using: composite
+  steps:
+    - env:
+        COMMAND: ${{ inputs.command }}
+        INPUT: ${{ inputs.input }}
+        INPUT_FILE: /dev/null
+        INPUT_COMMAND: ${{ inputs.input-command }}
+        SVER_BIN: ${{ runner.temp }}/robzr/sver/action-bin
+      id: run
+      run: |
+        # run sver
+        mkdir -p "${SVER_BIN%/*}"
+        cat >"$SVER_BIN" <<_EOF_ # action-sver-begin
+        # action-sver-end
+        chmod 755 "$SVER_BIN"
+        
+        if ${{ inputs.input-command == '' && 'false' || 'true' }} ; then
+          INPUT_FILE=$(mktemp)
+          echo '::group::Running input-command'
+          ${{ inputs.input-command }} >"${INPUT_FILE}"
+          echo '::endgroup::'
+        elif ${{ inputs.input == '' && 'false' || 'true' }} ; then
+          INPUT_FILE=$(mktemp)
+          cat >>"${INPUT_FILE}" <<_EOF_SVER_ACTION_
+        ${{ inputs.input }}
+        _EOF_SVER_ACTION_
+        fi
+
+        OUTPUT_FILE=$(mktemp)
+        RETURN_VALUE='true'
+
+        cat "$INPUTFILE" | "$SVER_BIN" ${{ inputs.command }} >"${OUTPUT_FILE}" || RETURN_VALUE=false
+
+        if [ $(wc -c < "$OUTPUT_FILE") -eq 0 ] ; then
+          echo "output=${RETURN_VALUE}" >>"${GITHUB_OUTPUT}"
+        else
+          echo 'output<<_EOF_' >>"${GITHUB_OUTPUT}"
+          cat "$OUTPUT_FILE" >>"${GITHUB_OUTPUT}"
+          echo '_EOF_' >>"${GITHUB_OUTPUT}"
+        fi
+      shell: bash
+
+# embedding command:
+# 
