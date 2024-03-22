@@ -619,7 +619,7 @@ sver_yaml() {
 # - `sver b ma v1.2.3` expands to `sver bump major v1.2.3`
 # - `sver b m v1.2.3` meaningfully errors due to ambiguous 'm'
 #
-if [ "${SVER_RUN:-true}" = true ]; then
+if [ "${SVER_RUN:-true}" == true ]; then
   unset command
   if [ $# = 0 ]; then
     COMP_WORDS=("" "help")

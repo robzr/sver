@@ -21,6 +21,7 @@ can be even used as a function library in Busybox Dash/Ash.
 - always checked with [shellcheck](https://github.com/koalaman/shellcheck) static analysis tool
 - comprehensive [test](tests) coverage
 - compatible with Bash v3 for us poor macOS users
+- includes a GitHub Action
 
 ## Usage
 ### Installation
@@ -115,6 +116,61 @@ Constraints:
     !pre[release] -- does not contain a prerelease (ie: "stable")
     !bui[ild_metadata] -- does not contain build_metadata
   Examples: "~> v1.2, != 1.3", "> 1, <= v2.5, != v2.4.4", "v1, !pre"
+```
+
+### GitHub Action
+A GitHub composite action is included in the repo, and each version of sver
+is also embedded directly in the composite action, which makes it very quick
+to load and run. Usage is simple, with the `command` input taking all commands
+and arguments that the CLI does.
+```yaml
+- uses: robzr/sver@v1
+  with:
+    command: version
+```
+The `output` output will contain the result, regardless of type (string,
+boolean, JSON, YAML).
+```yaml
+- id: sver
+  uses: robzr/sver@v1
+  with:
+    command: version
+
+- if: steps.sver.outputs.output == 'v1.2.3'
+  ...
+```
+Commands that return a boolean will return a boolean-as-string.
+```yaml
+- id: sver
+  uses: robzr/sver@v1
+  with:
+    command: constraint "${VERSION}" '~> v1.0, !pre'
+
+- if: steps.sver.outputs.output == 'true'
+  ...
+```
+For commands that take input on stdin, like `filter`, `max`, `min`, or `sort`,
+the `input` input can be specified.
+```yaml
+- id: sver
+  uses: robzr/sver@v1
+  with:
+    command: max
+    input: |
+      v1.0.1
+      v2.2.2
+      ...
+
+- if: steps.sver.outputs.output == env.VERSION
+  ...
+```
+The `input-command` input is also available, and will run the provided command,
+and use the command's output as input for **sver**.
+```yaml
+- uses: robzr/sver@v1
+  with:
+    command: max '< v1, !pre'
+    input-command: git tag -l
 ```
 
 ### Bash function library

@@ -1,0 +1,85 @@
+name: Test Action
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Test Action
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - run: |
+          # test that action has current sver embedded
+          .github/workflows/bin/embed_sver_in_action.sh 
+          if ! git diff --quiet action.yaml ; then
+            echo '::error title=Action not updated::The action /action.yaml' \
+              'was not updated with the current sver script.'
+            exit 1
+          fi
+        shell: bash
+
+      - id: sver-version
+        name: sver version
+        uses: ./
+        with:
+          command: version
+
+      - run: |
+          # test sver-version
+          if ! [[ '${{ steps.sver-version.outputs.output }}' =~ ^v[1-9][0-9]*\.[1-9][0-9]*\.[1-9][0-9]* ]] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-version.outputs.output }})'
+            exit 1
+          fi
+
+      - id: sver-max
+        name: sver max
+        uses: ./
+        with:
+          command: max
+          input-command: git tag -l
+
+      - run: |
+          # test sver-max
+          if ! [[ '${{ steps.sver-max.outputs.output }}' =~ ^v[1-9][0-9]*\.[1-9][0-9]*\.[1-9][0-9]* ]] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-max.outputs.output }})'
+            exit 1
+          fi
+
+      - id: sver-equals-true
+        name: sver equals (true)
+        uses: ./
+        with:
+          command: equals v1.2.3 v1.2.3+build-is-ignored
+
+      - run: |
+          # test sver-equals-true
+          if [ '${{ steps.sver-equals-true.outputs.output }}' != 'true' ] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-equals-true.outputs.output }})'
+            exit 1
+          fi
+
+      - id: sver-equals-false
+        name: sver equals (false)
+        uses: ./
+        with:
+          command: equals v1.2.3 v1.2.3-pre.is.not.ignored
+
+      - run: |
+          # test sver-equals-false
+          if [ '${{ steps.sver-equals-false.outputs.output }}' != 'false' ] ; then
+            echo '::error title=Action returned invalid response::The action' \
+              '/action.yaml returned an invalid response' \
+              '(${{ steps.sver-equals-false.outputs.output }})'
+            exit 1
+          fi
