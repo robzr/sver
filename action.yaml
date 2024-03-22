@@ -34,8 +34,8 @@ runs:
       run: |
         # run sver
         mkdir -p "${SVER_BIN%/*}"
-        cat >"$SVER_BIN" <<_EOF_ # action-sver-begin
-        # action-sver-end
+        cat >"$SVER_BIN" <<'#action-sver-end' #action-sver-begin
+        #action-sver-end
         chmod 755 "$SVER_BIN"
         
         if ${{ inputs.input-command == '' && 'false' || 'true' }} ; then
@@ -63,6 +63,3 @@ runs:
           echo '_EOF_' >>"${GITHUB_OUTPUT}"
         fi
       shell: bash
-
-# embedding command:
-# 
