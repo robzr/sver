@@ -1,10 +1,10 @@
 name: sver Action
 
-color: blue
+branding:
+  icon: code
+  color: blue
 
 description: sver SemVer (Semantic Versioning 2) parser, bump & utility action with support for version constraints
-
-icon: code
 
 inputs:
   command:
@@ -42,7 +42,7 @@ runs:
         # shellcheck disable=SC1008,SC2015,SC2096
         # shfmt -i 2 -ci -w
         
-        SVER_VERSION=v1.2.1
+        SVER_VERSION=v1.2.3
         SVER_INTRO="\
         sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
         library implementing a Semantic Versioning 2 compliant parser and utilities.

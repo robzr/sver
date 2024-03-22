@@ -1,9 +1,11 @@
+SVER_BIN=./sver
+cat >"$SVER_BIN" <<'#action-sver-end' #action-sver-begin
 #!/bin/bash
 # By Rob Zwissler (@robzr) 2/17/2024 https://github.com/robzr/sver
 # shellcheck disable=SC1008,SC2015,SC2096
 # shfmt -i 2 -ci -w
 
-SVER_VERSION=v1.2.3
+SVER_VERSION=v1.2.1
 SVER_INTRO="\
 sver ${SVER_VERSION} (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
@@ -685,3 +687,5 @@ if [ "${SVER_RUN:-true}" == true ]; then
   exit $status
 fi
 # bash-only-end
+#action-sver-end
+echo HI MOM
