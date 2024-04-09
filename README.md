@@ -78,11 +78,9 @@ for **sver**.
 convenient ways to install it.
 
 #### asdf
-The [asdf-sver](https://github.com/robzr/asdf-sver) plugin enables version management for **sver**. A
-[PR](https://github.com/asdf-vm/asdf-plugins/pull/965) has been opened for inclusion into the asdf plugin registry; in
-the meantime you can manually specify the asdf plugin repo.
+The [asdf-sver](https://github.com/robzr/asdf-sver) plugin enables version management for **sver**. 
 ```bash
-asdf plugin add sver https://github.com/robzr/asdf-sver.git
+asdf plugin add sver
 asdf install sver latest
 asdf global sver latest
 ```
