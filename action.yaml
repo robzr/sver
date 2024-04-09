@@ -31,7 +31,7 @@ runs:
         INPUT: ${{ inputs.input }}
         INPUT_FILE: /dev/null
         INPUT_COMMAND: ${{ inputs.input-command }}
-        SVER_BIN: ${{ github.action_path }}sver
+        SVER_BIN: ${{ github.action_path }}/sver
       id: run
       run: |
         # steps.run

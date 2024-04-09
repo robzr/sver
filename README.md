@@ -36,7 +36,7 @@ The `output` output will contain the result, regardless of type (string, boolean
   with:
     command: version
 
-- if: steps.sver.outputs.output == 'v1.2.4'
+- if: steps.sver.outputs.output == 'v1.2.5'
   ...
 ```
 Commands that return a boolean will return a boolean-as-string.
@@ -78,11 +78,9 @@ for **sver**.
 convenient ways to install it.
 
 #### asdf
-The [asdf-sver](https://github.com/robzr/asdf-sver) plugin enables version management for **sver**. A
-[PR](https://github.com/asdf-vm/asdf-plugins/pull/965) has been opened for inclusion into the asdf plugin registry; in
-the meantime you can manually specify the asdf plugin repo.
+The [asdf-sver](https://github.com/robzr/asdf-sver) plugin enables version management for **sver**. 
 ```bash
-asdf plugin add sver https://github.com/robzr/asdf-sver.git
+asdf plugin add sver
 asdf install sver latest
 asdf global sver latest
 ```
@@ -90,7 +88,7 @@ asdf global sver latest
 #### curl
 You can simply curl a version directly.
 ```bash
-curl -LO https://github.com/robzr/sver/releases/download/v1.2.4/sver
+curl -LO https://github.com/robzr/sver/releases/download/v1.2.5/sver
 ```
 
 #### Homebrew
@@ -103,7 +101,7 @@ brew install sver
 ### Command line usage
 See `sver help` for documentation.
 ```text
-sver v1.2.4 (https://github.com/robzr/sver) self contained cli tool and function
+sver v1.2.5 (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure Bash (v3)+ for simplicity & speed.
 
