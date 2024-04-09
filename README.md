@@ -36,7 +36,7 @@ The `output` output will contain the result, regardless of type (string, boolean
   with:
     command: version
 
-- if: steps.sver.outputs.output == 'v1.2.4'
+- if: steps.sver.outputs.output == 'v1.2.5'
   ...
 ```
 Commands that return a boolean will return a boolean-as-string.
@@ -88,7 +88,7 @@ asdf global sver latest
 #### curl
 You can simply curl a version directly.
 ```bash
-curl -LO https://github.com/robzr/sver/releases/download/v1.2.4/sver
+curl -LO https://github.com/robzr/sver/releases/download/v1.2.5/sver
 ```
 
 #### Homebrew
@@ -101,7 +101,7 @@ brew install sver
 ### Command line usage
 See `sver help` for documentation.
 ```text
-sver v1.2.4 (https://github.com/robzr/sver) self contained cli tool and function
+sver v1.2.5 (https://github.com/robzr/sver) self contained cli tool and function
 library implementing a Semantic Versioning 2 compliant parser and utilities.
 Written in optimized, portable, pure Bash (v3)+ for simplicity & speed.
 
